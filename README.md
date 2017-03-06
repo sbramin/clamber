@@ -19,7 +19,7 @@ Skip SSL verification
 ### Review
 Normal:
 
-    clamber  -job review -url https://sbramin.com
+    clamber -job review -url https://sbramin.com
 Pretty:
 
     clamber -job review -url https://sbramin.com -p
