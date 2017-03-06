@@ -1,6 +1,6 @@
 # clamber 
 
-Go go WebCrawler with a bolt on.
+Web Clamberer with a bolt on.
 
 ## Usage
 
