@@ -11,7 +11,7 @@ import (
 var gdb *bolt.DB
 
 func boltOn(c string) *bolt.DB {
-	db, err := bolt.Open("wc.db", 0600, nil)
+	db, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

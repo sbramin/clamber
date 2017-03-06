@@ -30,7 +30,7 @@ func main() {
 
 	if job == "" || baseURL == "" {
 		fmt.Println("You must specify the job type and a URL")
-		fmt.Println("usge wc -h for more information")
+		fmt.Println("usge clamber -h for more information")
 		os.Exit(1)
 	}
 
