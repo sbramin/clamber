@@ -2,6 +2,12 @@
 
 Web Clamberer with a bolt on.
 
+## Install
+
+    go get github.com/sbramin/clamber
+	cd $GOPATH/src/github.com/sbramin/clamber
+	go install
+
 ## Usage
 
 ### Help
