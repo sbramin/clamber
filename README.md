@@ -19,9 +19,6 @@ Web Clamberer with a bolt on.
 Normal:   
 
 	clamber -job crawl -url https://sbramin.com
-Skip SSL verification
-
-    clamber -job crawl -url https://sbramin.com -nossl
 
 ### Review
 Normal:
