@@ -105,8 +105,8 @@ func extract(URL string) (pageType, error) {
 				}
 			}
 		} else if n.Type == html.ElementNode {
-			switch {
-			case n.Data == "img":
+			switch n.Data {
+			case "img":
 				for _, i := range n.Attr {
 					if i.Key != "src" {
 						continue
@@ -119,7 +119,7 @@ func extract(URL string) (pageType, error) {
 						pT.Assets = append(pT.Assets, assetType{asset.String(), "img"})
 					}
 				}
-			case n.Data == "script":
+			case "script":
 				for _, s := range n.Attr {
 					if s.Key != "src" {
 						continue
@@ -132,7 +132,7 @@ func extract(URL string) (pageType, error) {
 						pT.Assets = append(pT.Assets, assetType{asset.String(), "script"})
 					}
 				}
-			case n.Data == "object":
+			case "object":
 				for _, s := range n.Attr {
 					if s.Key != "data" {
 						continue
@@ -145,7 +145,7 @@ func extract(URL string) (pageType, error) {
 						pT.Assets = append(pT.Assets, assetType{asset.String(), "obj"})
 					}
 				}
-			case n.Data == "link":
+			case "link":
 				for _, a := range n.Attr {
 					if a.Key == "href" {
 						asset, err := resp.Request.URL.Parse(a.Val)
