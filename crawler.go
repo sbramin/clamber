@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -68,8 +67,6 @@ func extract(URL string) (pageType, error) {
 
 	var pT pageType
 
-	hashTest, _ := regexp.Compile(".[#]")
-
 	timeout := time.Duration(5 * time.Second)
 
 	transport := &http.Transport{
@@ -110,7 +107,7 @@ func extract(URL string) (pageType, error) {
 				if link.String() == URL || link.String() == baseURL {
 					continue
 				}
-				if hashTest.MatchString(link.String()) {
+				if strings.Contains(link.String(), "#") {
 					continue
 				}
 				if strings.HasPrefix(link.String(), baseURL) {
