@@ -1,13 +1,11 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	"golang.org/x/net/html"
 )
@@ -67,15 +65,7 @@ func extract(URL string) (pageType, error) {
 
 	var pT pageType
 
-	timeout := time.Duration(5 * time.Second)
-
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: ssl,
-		},
-	}
-	client := http.Client{Transport: transport, Timeout: timeout}
-	resp, err := client.Get(URL)
+	resp, err := http.Get(URL)
 
 	if err != nil {
 		return pT, err

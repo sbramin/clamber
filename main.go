@@ -10,7 +10,6 @@ import (
 
 var (
 	baseURL   string
-	ssl       bool
 	pageCount uint64
 	pretty    bool
 )
@@ -19,13 +18,11 @@ func main() {
 
 	j := flag.String("job", "", "What job: crawl or review")
 	u := flag.String("url", "", "A URL to start with: eg. https://sbramin.com")
-	s := flag.Bool("nossl", false, "Skip SSL verfication")
 	p := flag.Bool("p", false, "Pretty JSON")
 
 	flag.Parse()
 	job := *j
 	baseURL = *u
-	ssl = *s
 	pretty = *p
 
 	if job == "" || baseURL == "" {
