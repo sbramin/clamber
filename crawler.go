@@ -91,16 +91,17 @@ func extract(URL string) (pageType, error) {
 					continue
 				}
 				link, err := resp.Request.URL.Parse(a.Val)
-				if err != nil {
+
+				switch {
+				case err != nil:
 					continue
-				}
-				if link.String() == URL || link.String() == baseURL {
+				case link.String() == baseURL:
 					continue
-				}
-				if strings.Contains(link.String(), "#") {
+				case link.String() == URL:
 					continue
-				}
-				if strings.HasPrefix(link.String(), baseURL) {
+				case strings.Contains(link.String(), "#"):
+					continue
+				case strings.HasPrefix(link.String(), baseURL):
 					pT.Children = append(pT.Children, link.String())
 				}
 			}
