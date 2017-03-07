@@ -5,6 +5,7 @@ Web Clamberer with a bolt on.
 ## Install
 
     go get github.com/sbramin/clamber
+	go get github.com/boltdb/bolt
 	cd $GOPATH/src/github.com/sbramin/clamber
 	go install
 
