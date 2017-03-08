@@ -85,7 +85,8 @@ func extract(URL string) (pageType, error) {
 	pT.URL = URL
 
 	visitNode := func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
+		switch {
+		case n.Type == html.ElementNode && n.Data == "a":
 			for _, a := range n.Attr {
 				if a.Key != "href" {
 					continue
@@ -105,7 +106,7 @@ func extract(URL string) (pageType, error) {
 					pT.Children = append(pT.Children, link.String())
 				}
 			}
-		} else if n.Type == html.ElementNode {
+		case n.Type == html.ElementNode:
 			switch n.Data {
 			case "img":
 				for _, i := range n.Attr {

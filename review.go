@@ -21,12 +21,10 @@ func prettyJSON() {
 		j, _ := json.MarshalIndent(&page, "", " ")
 		fmt.Println(string(j))
 	}
-
 }
 
 func plainJSON() {
 	for _, p := range boltUp() {
 		fmt.Println(p)
 	}
-
 }

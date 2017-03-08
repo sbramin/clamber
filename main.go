@@ -39,7 +39,7 @@ func main() {
 		db := boltOn(job)
 		defer boltOff(db)
 
-		if job == "crawl" {
+		if job == "crawl" { // Can change this to a switch
 			start := time.Now()
 			goCrawl(baseURL)
 			fmt.Printf(
