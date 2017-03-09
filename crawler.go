@@ -161,7 +161,6 @@ func extract(URL string) (pageType, error) {
 				}
 			}
 		}
-
 	}
 	forEachNode(doc, visitNode, nil)
 	return pT, nil
