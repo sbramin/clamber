@@ -89,4 +89,8 @@ func boltDown(page pageType) {
 		}
 		return nil
 	})
+	if err != nil {
+		log.Print(err)
+	}
+
 }

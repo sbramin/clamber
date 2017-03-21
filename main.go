@@ -26,7 +26,7 @@ func main() {
 	pretty = *p
 
 	switch {
-	case (job != "crawl" && job != "review") || baseURL == "":
+	case !(job == "crawl" || job == "review") || baseURL == "":
 		fmt.Println("You must specify the job type and a URL")
 		fmt.Println("eg. clamber -url https://sbramin.com -job crawl")
 		fmt.Println("use clamber -h for more information")
