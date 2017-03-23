@@ -12,18 +12,18 @@ type boltDB struct {
 	*bolt.DB
 }
 
-func createDB(baseURL *string, job string) *boltDB {
+func createDB(baseURL, job *string) *boltDB {
 	bdb, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if job == "crawl" {
+	if *job == "crawl" {
 
 		err := bdb.View(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte(baseURL))
+			bucket := tx.Bucket([]byte(*baseURL))
 			if bucket != nil {
-				tx.DeleteBucket([]byte(baseURL))
+				tx.DeleteBucket([]byte(*baseURL))
 			}
 			return nil
 		})
@@ -32,7 +32,7 @@ func createDB(baseURL *string, job string) *boltDB {
 		}
 
 		err = bdb.Update(func(tx *bolt.Tx) error {
-			_, err := tx.CreateBucketIfNotExists([]byte(baseURL))
+			_, err := tx.CreateBucketIfNotExists([]byte(*baseURL))
 			if err != nil {
 				return fmt.Errorf("create bucket: %s", err)
 			}
@@ -50,11 +50,11 @@ func (db *boltDB) Off() {
 	db.Close()
 }
 
-func (db *boltDB) Read() []string {
+func (db *boltDB) Read(baseURL *string) []string {
 
 	var pages []string
 	err := db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(baseURL))
+		bucket := tx.Bucket([]byte(*baseURL))
 
 		if bucket == nil {
 			fmt.Println("You haven't crawled that site")
@@ -74,13 +74,13 @@ func (db *boltDB) Read() []string {
 	return pages
 }
 
-func (db *boltDB) Write(page pageType) {
+func (db *boltDB) Write(baseURL *string, page pageType) {
 	buf, err := json.Marshal(page)
 	if err != nil {
 		log.Print(err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(baseURL))
+		bucket := tx.Bucket([]byte(*baseURL))
 		if err != nil {
 			return err
 		}

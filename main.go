@@ -27,7 +27,8 @@ func main() {
 		fmt.Println("use clamber -h for more information")
 		os.Exit(1)
 	case *job == "crawl" || *job == "review":
-		if *baseURL[len(*baseURL)-1:] != "/" {
+		url := *baseURL
+		if url[len(url)-1:] != "/" {
 			*baseURL += "/"
 		}
 	}
@@ -42,6 +43,6 @@ func main() {
 		fmt.Printf(
 			"Crawled %d pages from %s in %.2f seconds \n", atomic.LoadUint64(&pageCount), *baseURL, time.Since(start).Seconds())
 	case "review":
-		review(p, db)
+		review(db, baseURL, pretty)
 	}
 }

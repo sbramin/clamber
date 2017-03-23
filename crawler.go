@@ -25,43 +25,43 @@ type assetType struct {
 	Type string `json:"type"`
 }
 
-func crawler(db *boltDB, url string) []string {
+func crawler(db *boltDB, baseURL *string, url string) []string {
 	semaphore <- struct{}{} // Initialize with empty struct
 
-	page, err := extract(url)
+	page, err := extract(baseURL, url)
 	if err != nil {
 		log.Print(err)
 	}
-	db.Write(page)
+	db.Write(baseURL, page)
 	atomic.AddUint64(&pageCount, 1)
 	<-semaphore
 	return page.Children
 }
 
-func goCrawl(db *boltDB, url string) {
+func goCrawl(db *boltDB, baseURL *string) {
 	links := make(chan []string)
 	seen := make(map[string]bool)
 
-	startURL := []string{url}
+	startURL := []string{*baseURL}
 
 	go func() { links <- startURL }()
 
 	for n := 1; n > 0; n-- {
 		list := <-links
-		for _, link := range list {
-			if !seen[link] {
-				seen[link] = true
+		for _, url := range list {
+			if !seen[url] {
+				seen[url] = true
 				n++
-				go func(link string) {
-					links <- crawler(db, link)
-				}(link)
+				go func(url string) {
+					links <- crawler(db, baseURL, url)
+				}(url)
 			}
 		}
 	}
 }
 
 // extract - Main link magic
-func extract(URL string) (pageType, error) {
+func extract(baseURL *string, URL string) (pageType, error) {
 
 	var pT pageType
 
@@ -96,13 +96,13 @@ func extract(URL string) (pageType, error) {
 				switch {
 				case err != nil:
 					continue
-				case link.String() == baseURL:
+				case link.String() == *baseURL:
 					continue
 				case link.String() == URL:
 					continue
 				case strings.Contains(link.String(), "#"):
 					continue
-				case strings.HasPrefix(link.String(), baseURL):
+				case strings.HasPrefix(link.String(), *baseURL):
 					pT.Children = append(pT.Children, link.String())
 				}
 			}
@@ -117,7 +117,7 @@ func extract(URL string) (pageType, error) {
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(asset.String(), baseURL) {
+					if strings.HasPrefix(asset.String(), *baseURL) {
 						pT.Assets = append(pT.Assets, assetType{asset.String(), "img"})
 					}
 				}
@@ -130,7 +130,7 @@ func extract(URL string) (pageType, error) {
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(asset.String(), baseURL) {
+					if strings.HasPrefix(asset.String(), *baseURL) {
 						pT.Assets = append(pT.Assets, assetType{asset.String(), "script"})
 					}
 				}
@@ -143,7 +143,7 @@ func extract(URL string) (pageType, error) {
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(asset.String(), baseURL) {
+					if strings.HasPrefix(asset.String(), *baseURL) {
 						pT.Assets = append(pT.Assets, assetType{asset.String(), "obj"})
 					}
 				}
@@ -154,7 +154,7 @@ func extract(URL string) (pageType, error) {
 						if err != nil {
 							continue
 						}
-						if strings.HasPrefix(asset.String(), baseURL) {
+						if strings.HasPrefix(asset.String(), *baseURL) {
 							pT.Assets = append(pT.Assets, assetType{asset.String(), "css"})
 						}
 					}
