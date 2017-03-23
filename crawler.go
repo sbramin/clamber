@@ -25,20 +25,20 @@ type assetType struct {
 	Type string `json:"type"`
 }
 
-func crawler(url string) []string {
+func crawler(db *boltDB, url string) []string {
 	semaphore <- struct{}{} // Initialize with empty struct
 
 	page, err := extract(url)
 	if err != nil {
 		log.Print(err)
 	}
-	boltDown(page)
+	db.Write(page)
 	atomic.AddUint64(&pageCount, 1)
 	<-semaphore
 	return page.Children
 }
 
-func goCrawl(url string) {
+func goCrawl(db *boltDB, url string) {
 	links := make(chan []string)
 	seen := make(map[string]bool)
 
@@ -53,7 +53,7 @@ func goCrawl(url string) {
 				seen[link] = true
 				n++
 				go func(link string) {
-					links <- crawler(link)
+					links <- crawler(db, link)
 				}(link)
 			}
 		}

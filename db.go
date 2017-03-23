@@ -8,17 +8,19 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-var gdb *bolt.DB
+type boltDB struct {
+	*bolt.DB
+}
 
-func boltOn(c string) *bolt.DB {
-	db, err := bolt.Open("clamber.db", 0600, nil)
+func createDB(baseURL *string, job string) *boltDB {
+	bdb, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if c == "crawl" {
+	if job == "crawl" {
 
-		err := db.View(func(tx *bolt.Tx) error {
+		err := bdb.View(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket([]byte(baseURL))
 			if bucket != nil {
 				tx.DeleteBucket([]byte(baseURL))
@@ -29,7 +31,7 @@ func boltOn(c string) *bolt.DB {
 			log.Print(err)
 		}
 
-		err = db.Update(func(tx *bolt.Tx) error {
+		err = bdb.Update(func(tx *bolt.Tx) error {
 			_, err := tx.CreateBucketIfNotExists([]byte(baseURL))
 			if err != nil {
 				return fmt.Errorf("create bucket: %s", err)
@@ -40,19 +42,18 @@ func boltOn(c string) *bolt.DB {
 			log.Print(err)
 		}
 	}
-
-	gdb = db
+	db := &boltDB{DB: bdb}
 	return db
 }
 
-func boltOff(db *bolt.DB) {
+func (db *boltDB) Off() {
 	db.Close()
 }
 
-func boltUp() []string {
+func (db *boltDB) Read() []string {
 
 	var pages []string
-	err := gdb.View(func(tx *bolt.Tx) error {
+	err := db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(baseURL))
 
 		if bucket == nil {
@@ -73,12 +74,12 @@ func boltUp() []string {
 	return pages
 }
 
-func boltDown(page pageType) {
+func (db *boltDB) Write(page pageType) {
 	buf, err := json.Marshal(page)
 	if err != nil {
 		log.Print(err)
 	}
-	err = gdb.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(baseURL))
 		if err != nil {
 			return err

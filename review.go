@@ -5,26 +5,26 @@ import (
 	"fmt"
 )
 
-func review() {
+func review(pretty bool, db *boltDB) {
 	if pretty {
-		prettyJSON()
+		prettyJSON(db)
 	} else {
-		plainJSON()
+		plainJSON(db)
 	}
 }
 
-func prettyJSON() {
+func prettyJSON(db *boltDB) {
 	var page pageType
 
-	for _, p := range boltUp() {
+	for _, p := range db.Read() {
 		json.Unmarshal([]byte(p), &page)
 		j, _ := json.MarshalIndent(&page, "", " ")
 		fmt.Println(string(j))
 	}
 }
 
-func plainJSON() {
-	for _, p := range boltUp() {
+func plainJSON(db *boltDB) {
+	for _, p := range db.Read() {
 		fmt.Println(p)
 	}
 }
