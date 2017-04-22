@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 )
 
 // review calls either plain or pretty json for a previously crawled site form boltDB
@@ -20,7 +21,10 @@ func prettyJSON(db *boltDB, baseURL *string) {
 	var page pageType
 
 	for _, p := range db.Read(baseURL) {
-		json.Unmarshal([]byte(p), &page)
+		err := json.Unmarshal([]byte(p), &page)
+		if err != nil {
+			log.Print(err)
+		}
 		j, _ := json.MarshalIndent(&page, "", " ")
 		fmt.Println(string(j))
 	}

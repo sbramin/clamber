@@ -23,21 +23,13 @@ func createDB(baseURL, job *string) *boltDB {
 
 	if *job == "crawl" {
 
-		err := bdb.View(func(tx *bolt.Tx) error {
+		err := bdb.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket([]byte(*baseURL))
 			if bucket != nil {
-				tx.DeleteBucket([]byte(*baseURL))
+				err = tx.DeleteBucket([]byte(*baseURL))
 			}
-			return nil
-		})
-		if err != nil {
-			log.Print(err)
-		}
-
-		err = bdb.Update(func(tx *bolt.Tx) error {
-			_, err := tx.CreateBucketIfNotExists([]byte(*baseURL))
 			if err != nil {
-				return fmt.Errorf("create bucket: %s", err)
+				return fmt.Errorf("could not delete bucket %s", err)
 			}
 			return nil
 		})
@@ -45,12 +37,26 @@ func createDB(baseURL, job *string) *boltDB {
 			log.Print(err)
 		}
 	}
+
+	err = bdb.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(*baseURL))
+		if err != nil {
+			return fmt.Errorf("create bucket %s", err)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Print(err)
+	}
 	db := &boltDB{DB: bdb}
 	return db
 }
 
 func (db *boltDB) Off() {
-	db.Close()
+	err := db.Close()
+	if err != nil {
+		log.Print(err)
+	}
 }
 
 // Read method for boltDB type
@@ -61,13 +67,13 @@ func (db *boltDB) Read(baseURL *string) []string {
 		bucket := tx.Bucket([]byte(*baseURL))
 
 		if bucket == nil {
-			fmt.Println("You haven't crawled that site")
-		} else {
-			c := bucket.Cursor()
+			return fmt.Errorf("You haven't crawled that site")
+		}
+		c := bucket.Cursor()
 
-			for k, v := c.First(); k != nil; k, v = c.Next() {
-				pages = append(pages, string(v))
-			}
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			pages = append(pages, string(v))
+
 		}
 		return nil
 	})
@@ -86,14 +92,8 @@ func (db *boltDB) Write(baseURL *string, page pageType) {
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(*baseURL))
-		if err != nil {
-			return err
-		}
 		err = bucket.Put([]byte(page.URL), buf)
-		if err != nil {
-			log.Print(err)
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		log.Print(err)

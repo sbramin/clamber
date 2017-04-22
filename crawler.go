@@ -76,12 +76,21 @@ func extract(baseURL *string, URL string) (pageType, error) {
 		return pT, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		err := resp.Body.Close()
+		if err != nil {
+			log.Print(err)
+		}
 		return pT, fmt.Errorf("getting %s: %s", URL, resp.Status)
 	}
 
 	doc, err := html.Parse(resp.Body)
-	resp.Body.Close()
+	if err != nil {
+		log.Print(err)
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		log.Print(err)
+	}
 
 	if err != nil {
 		return pT, fmt.Errorf("parsing %s as HTML: %v", URL, err)
