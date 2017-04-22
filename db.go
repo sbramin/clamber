@@ -15,43 +15,44 @@ type boltDB struct {
 // createDB - creates a new boltDB if none existed and initializes a bucket for the site being
 // worked on.  If a crawl operation is being performed and it has previously crawled that site
 // it will first delete the previous bucket.
-func createDB(baseURL, job *string) *boltDB {
+func setupDB(baseURL, job *string) (*boltDB, error) {
 	bdb, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
-		log.Fatal(err)
+		return &boltDB{}, fmt.Errorf("could not open db file - %s", err)
 	}
+	db := &boltDB{DB: bdb}
 
 	if *job == "crawl" {
-
-		err := bdb.Update(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte(*baseURL))
-			if bucket != nil {
-				err = tx.DeleteBucket([]byte(*baseURL))
-			}
-			if err != nil {
-				return fmt.Errorf("could not delete bucket %s", err)
-			}
-			return nil
-		})
+		err = db.CreateBucket(baseURL)
 		if err != nil {
-			log.Print(err)
+			return &boltDB{}, fmt.Errorf("could not create bucket - %s", err)
 		}
 	}
+	return db, nil
+}
 
+// CreateBucket is a wrapper around boltDBs Update/Create bucket methods that
+// first removes a bucket if it already exists.
+func (bdb *boltDB) CreateBucket(baseURL *string) (err error) {
 	err = bdb.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(*baseURL))
+		b := tx.Bucket([]byte(*baseURL))
+		if b != nil {
+			err = tx.DeleteBucket([]byte(*baseURL))
+		}
+		if err != nil {
+			return fmt.Errorf("could not clean out bucket %s", err)
+		}
+
+		b, err = tx.CreateBucketIfNotExists([]byte(*baseURL))
 		if err != nil {
 			return fmt.Errorf("create bucket %s", err)
 		}
-		return nil
+		return err
 	})
-	if err != nil {
-		log.Print(err)
-	}
-	db := &boltDB{DB: bdb}
-	return db
+	return err
 }
 
+// Off Method closes the boltDB session
 func (db *boltDB) Off() {
 	err := db.Close()
 	if err != nil {

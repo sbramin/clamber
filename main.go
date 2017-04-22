@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"sync/atomic"
 	"time"
@@ -33,7 +34,10 @@ func main() {
 		}
 	}
 
-	db := createDB(baseURL, job)
+	db, err := setupDB(baseURL, job)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer db.Off()
 
 	switch *job {
