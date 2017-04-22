@@ -25,6 +25,8 @@ type assetType struct {
 	Type string `json:"type"`
 }
 
+// crawler is the worker that runs extract and saves the page to boltDB, as well as passing
+// child links back to goCrawl to spawn more crawlers.
 func crawler(db *boltDB, baseURL *string, url string) []string {
 	semaphore <- struct{}{} // Initialize with empty struct
 
@@ -38,6 +40,8 @@ func crawler(db *boltDB, baseURL *string, url string) []string {
 	return page.Children
 }
 
+// goCrawl is the master that takes links from workers and spawns off more workers, whilst
+// limiting new crawler functions to the semaphore size.
 func goCrawl(db *boltDB, baseURL *string) {
 	links := make(chan []string)
 	seen := make(map[string]bool)
@@ -60,7 +64,8 @@ func goCrawl(db *boltDB, baseURL *string) {
 	}
 }
 
-// extract - Main link magic
+// extract does the main page parsing and applies rules like sticking to the parent domain
+// and classifying assets.
 func extract(baseURL *string, URL string) (pageType, error) {
 
 	var pT pageType
@@ -166,6 +171,7 @@ func extract(baseURL *string, URL string) (pageType, error) {
 	return pT, nil
 }
 
+// forEachNode traverses the nodes of the HTML doc.
 func forEachNode(n *html.Node, pre, post func(n *html.Node)) {
 	if pre != nil {
 		pre(n)
