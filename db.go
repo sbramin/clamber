@@ -12,6 +12,9 @@ type boltDB struct {
 	*bolt.DB
 }
 
+// createDB - creates a new boltDB if none existed and initializes a bucket for the site being
+// worked on.  If a crawl operation is being performed and it has previously crawled that site
+// it will first delete the previous bucket.
 func createDB(baseURL, job *string) *boltDB {
 	bdb, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
@@ -50,6 +53,7 @@ func (db *boltDB) Off() {
 	db.Close()
 }
 
+// Read method for boltDB type
 func (db *boltDB) Read(baseURL *string) []string {
 
 	var pages []string
@@ -74,6 +78,7 @@ func (db *boltDB) Read(baseURL *string) []string {
 	return pages
 }
 
+// Write method for boltDB type
 func (db *boltDB) Write(baseURL *string, page pageType) {
 	buf, err := json.Marshal(page)
 	if err != nil {
