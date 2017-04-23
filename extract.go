@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -11,21 +10,12 @@ import (
 
 // extract does the main page parsing and applies rules like sticking to the parent domain
 // and classifying assets.
-func extract(baseURL *string, URL string, resp *http.Response) (page, error) {
-	var p page
+func extract(baseURL *string, URL string, resp *http.Response) (p page, err error) {
+	fmt.Println(resp)
 	doc, err := html.Parse(resp.Body)
-	if err != nil {
-		log.Print(err)
-	}
-	err = resp.Body.Close()
-	if err != nil {
-		log.Print(err)
-	}
-
 	if err != nil {
 		return p, fmt.Errorf("parsing %s as HTML: %v", URL, err)
 	}
-
 	p.URL = URL
 
 	visitNode := func(n *html.Node) {
