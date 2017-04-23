@@ -18,12 +18,13 @@ func review(db *boltDB, baseURL *string, pretty *bool) {
 // prettyJSON retrieves records from boltdb of a previously crawled site and unmarshals
 // the json inorder to prettily print it to the terminal.
 func prettyJSON(db *boltDB, baseURL *string) {
+	var pt page
 	for _, p := range db.Read(baseURL) {
-		err := json.Unmarshal([]byte(p), &p)
+		err := json.Unmarshal([]byte(p), &pt)
 		if err != nil {
 			log.Print(err)
 		}
-		j, _ := json.MarshalIndent(&p, "", " ")
+		j, _ := json.MarshalIndent(&pt, "", " ")
 		fmt.Println(string(j))
 	}
 }
