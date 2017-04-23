@@ -34,7 +34,7 @@ func main() {
 		}
 	}
 
-	db, err := setupDB(baseURL, job)
+	db, err := setupDB()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,6 +42,10 @@ func main() {
 
 	switch *job {
 	case "crawl":
+		err = db.CreateBucket(baseURL)
+		if err != nil {
+			log.Fatal("could not create bucket - %s", err)
+		}
 		start := time.Now()
 		goCrawl(db, baseURL)
 		fmt.Printf(

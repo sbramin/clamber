@@ -15,19 +15,12 @@ type boltDB struct {
 // setupDB - creates a new boltDB if none existed and initializes a bucket for the site being
 // worked on.  If a crawl operation is being performed and it has previously crawled that site
 // it will first delete the previous bucket.
-func setupDB(baseURL, job *string) (*boltDB, error) {
+func setupDB() (*boltDB, error) {
 	bdb, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
 		return &boltDB{}, fmt.Errorf("could not open db file - %s", err)
 	}
 	db := &boltDB{DB: bdb}
-
-	if *job == "crawl" {
-		err = db.CreateBucket(baseURL)
-		if err != nil {
-			return &boltDB{}, fmt.Errorf("could not create bucket - %s", err)
-		}
-	}
 	return db, nil
 }
 
