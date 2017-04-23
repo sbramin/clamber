@@ -20,14 +20,13 @@ func setupDB() (*boltDB, error) {
 	if err != nil {
 		return &boltDB{}, fmt.Errorf("could not open db file - %s", err)
 	}
-	db := &boltDB{DB: bdb}
-	return db, nil
+	return &boltDB{DB: bdb}, nil
 }
 
 // CreateBucket is a wrapper around boltDBs Update/Create bucket methods that
 // first removes a bucket if it already exists.
-func (bdb *boltDB) CreateBucket(baseURL *string) (err error) {
-	err = bdb.Update(func(tx *bolt.Tx) error {
+func (db *boltDB) CreateBucket(baseURL *string) (err error) {
+	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(*baseURL))
 		if b != nil {
 			err = tx.DeleteBucket([]byte(*baseURL))
