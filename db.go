@@ -12,7 +12,7 @@ type boltDB struct {
 	*bolt.DB
 }
 
-// createDB - creates a new boltDB if none existed and initializes a bucket for the site being
+// setupDB - creates a new boltDB if none existed and initializes a bucket for the site being
 // worked on.  If a crawl operation is being performed and it has previously crawled that site
 // it will first delete the previous bucket.
 func setupDB(baseURL, job *string) (*boltDB, error) {
@@ -40,7 +40,7 @@ func (bdb *boltDB) CreateBucket(baseURL *string) (err error) {
 			err = tx.DeleteBucket([]byte(*baseURL))
 		}
 		if err != nil {
-			return fmt.Errorf("could not clean out bucket %s", err)
+			return fmt.Errorf("could not clean out existing bucket %s", err)
 		}
 
 		b, err = tx.CreateBucketIfNotExists([]byte(*baseURL))
@@ -68,7 +68,7 @@ func (db *boltDB) Read(baseURL *string) []string {
 		bucket := tx.Bucket([]byte(*baseURL))
 
 		if bucket == nil {
-			return fmt.Errorf("You haven't crawled that site")
+			return fmt.Errorf("you haven't crawled that site")
 		}
 		c := bucket.Cursor()
 
