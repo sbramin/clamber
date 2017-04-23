@@ -52,16 +52,8 @@ func (bdb *boltDB) CreateBucket(baseURL *string) (err error) {
 	return err
 }
 
-// Off Method closes the boltDB session
-func (db *boltDB) Off() {
-	err := db.Close()
-	if err != nil {
-		log.Print(err)
-	}
-}
-
-// Read method for boltDB type
-func (db *boltDB) Read(baseURL *string) []string {
+// Reader method for boltDB type
+func (db *boltDB) Reader(baseURL *string) []string {
 
 	var ps []string
 	err := db.View(func(tx *bolt.Tx) error {
@@ -85,8 +77,8 @@ func (db *boltDB) Read(baseURL *string) []string {
 	return ps
 }
 
-// Write method for boltDB type
-func (db *boltDB) Write(baseURL *string, p page) {
+// Writer method for boltDB type
+func (db *boltDB) Writer(baseURL *string, p page) {
 	buf, err := json.Marshal(p)
 	if err != nil {
 		log.Print(err)

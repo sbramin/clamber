@@ -19,7 +19,7 @@ func review(db *boltDB, baseURL *string, pretty *bool) {
 // the json inorder to prettily print it to the terminal.
 func prettyJSON(db *boltDB, baseURL *string) {
 	var pt page
-	for _, p := range db.Read(baseURL) {
+	for _, p := range db.Reader(baseURL) {
 		err := json.Unmarshal([]byte(p), &pt)
 		if err != nil {
 			log.Print(err)
@@ -32,7 +32,7 @@ func prettyJSON(db *boltDB, baseURL *string) {
 // plainJSON retrieves the json records for a previously crawled site and prints them
 // to the terminal.
 func plainJSON(db *boltDB, baseURL *string) {
-	for _, p := range db.Read(baseURL) {
+	for _, p := range db.Reader(baseURL) {
 		fmt.Println(p)
 	}
 }

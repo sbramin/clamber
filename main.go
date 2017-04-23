@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Off()
+	defer db.Close()
 
 	switch *job {
 	case "crawl":

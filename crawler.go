@@ -31,7 +31,7 @@ func crawler(db *boltDB, baseURL *string, url string) []string {
 	if err != nil {
 		log.Print(err)
 	}
-	db.Write(baseURL, p)
+	db.Writer(baseURL, p)
 	atomic.AddUint64(&pageCount, 1)
 	<-semaphore
 	return p.Children
