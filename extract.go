@@ -11,7 +11,6 @@ import (
 // extract does the main page parsing and applies rules like sticking to the parent domain
 // and classifying assets.
 func extract(baseURL *string, URL string, resp *http.Response) (p page, err error) {
-	fmt.Println(resp)
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		return p, fmt.Errorf("parsing %s as HTML: %v", URL, err)
