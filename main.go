@@ -1,56 +1,20 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
-	"os"
-	"sync/atomic"
-	"time"
+	"net/http"
 )
 
-var (
-	pageCount uint64
-)
+var db *boltDB
 
 func main() {
-
-	job := flag.String("job", "", "What job: crawl or review")
-	baseURL := flag.String("url", "", "A URL to start with: eg. https://sbramin.com")
-	pretty := flag.Bool("p", false, "Pretty JSON")
-
-	flag.Parse()
-
-	switch {
-	case !(*job == "crawl" || *job == "review") || *baseURL == "":
-		fmt.Println("You must specify the job type and a URL")
-		fmt.Println("eg. clamber -url https://sbramin.com -job crawl")
-		fmt.Println("use clamber -h for more information")
-		os.Exit(1)
-	case *job == "crawl" || *job == "review":
-		url := *baseURL
-		if url[len(url)-1:] != "/" {
-			*baseURL += "/"
-		}
-	}
-
-	db, err := setupDB()
+	var err error
+	db, err = setupDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	switch *job {
-	case "crawl":
-		err = db.CreateBucket(baseURL)
-		if err != nil {
-			log.Fatal("could not create bucket - %s", err)
-		}
-		start := time.Now()
-		goCrawl(db, baseURL)
-		fmt.Printf(
-			"Crawled %d pages from %s in %.2f seconds \n", atomic.LoadUint64(&pageCount), *baseURL, time.Since(start).Seconds())
-	case "review":
-		review(db, baseURL, pretty)
-	}
+	router := NewRouter()
+	log.Fatal(http.ListenAndServe(":8080", router))
 }

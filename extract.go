@@ -10,7 +10,7 @@ import (
 
 // extract does the main page parsing and applies rules like sticking to the parent domain
 // and classifying assets.
-func extract(baseURL *string, URL string, resp *http.Response) (p page, err error) {
+func extract(baseURL, URL string, resp *http.Response) (p page, err error) {
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		return p, fmt.Errorf("parsing %s as HTML: %v", URL, err)
@@ -29,13 +29,13 @@ func extract(baseURL *string, URL string, resp *http.Response) (p page, err erro
 				switch {
 				case err != nil:
 					continue
-				case link.String() == *baseURL:
+				case link.String() == baseURL:
 					continue
 				case link.String() == URL:
 					continue
 				case strings.Contains(link.String(), "#"):
 					continue
-				case strings.HasPrefix(link.String(), *baseURL):
+				case strings.HasPrefix(link.String(), baseURL):
 					p.Children = append(p.Children, link.String())
 				}
 			}
@@ -50,7 +50,7 @@ func extract(baseURL *string, URL string, resp *http.Response) (p page, err erro
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(a.String(), *baseURL) {
+					if strings.HasPrefix(a.String(), baseURL) {
 						p.Assets = append(p.Assets, asset{a.String(), "img"})
 					}
 				}
@@ -63,7 +63,7 @@ func extract(baseURL *string, URL string, resp *http.Response) (p page, err erro
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(a.String(), *baseURL) {
+					if strings.HasPrefix(a.String(), baseURL) {
 						p.Assets = append(p.Assets, asset{a.String(), "script"})
 					}
 				}
@@ -76,7 +76,7 @@ func extract(baseURL *string, URL string, resp *http.Response) (p page, err erro
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(a.String(), *baseURL) {
+					if strings.HasPrefix(a.String(), baseURL) {
 						p.Assets = append(p.Assets, asset{a.String(), "obj"})
 					}
 				}
@@ -87,7 +87,7 @@ func extract(baseURL *string, URL string, resp *http.Response) (p page, err erro
 						if err != nil {
 							continue
 						}
-						if strings.HasPrefix(a.String(), *baseURL) {
+						if strings.HasPrefix(a.String(), baseURL) {
 							p.Assets = append(p.Assets, asset{a.String(), "css"})
 						}
 					}

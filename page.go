@@ -1,5 +1,9 @@
 package main
 
+type site struct {
+	URL string `json:"url"`
+}
+
 // page - a website URL, its children websites and any static assets on the page.
 type page struct {
 	URL      string   `json:"url"`

@@ -25,17 +25,22 @@ func setupDB() (*boltDB, error) {
 
 // CreateBucket is a wrapper around boltDBs Update/Create bucket methods that
 // first removes a bucket if it already exists.
-func (db *boltDB) CreateBucket(baseURL *string) (err error) {
+func (db *boltDB) CreateBucket(baseURL string) (err error) {
+	if baseURL[:5] == "https" {
+		baseURL = baseURL[8:]
+	} else {
+		baseURL = baseURL[7:]
+	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(*baseURL))
+		b := tx.Bucket([]byte(baseURL))
 		if b != nil {
-			err = tx.DeleteBucket([]byte(*baseURL))
+			err = tx.DeleteBucket([]byte(baseURL))
 		}
 		if err != nil {
 			return fmt.Errorf("could not clean out existing bucket %s", err)
 		}
 
-		b, err = tx.CreateBucketIfNotExists([]byte(*baseURL))
+		b, err = tx.CreateBucketIfNotExists([]byte(baseURL))
 		if err != nil {
 			return fmt.Errorf("create bucket %s", err)
 		}
@@ -45,14 +50,13 @@ func (db *boltDB) CreateBucket(baseURL *string) (err error) {
 }
 
 // Reader method for boltDB type
-func (db *boltDB) Reader(baseURL *string) []string {
-
+func (db *boltDB) Reader(baseURL string) []string {
 	var ps []string
 	err := db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(*baseURL))
+		bucket := tx.Bucket([]byte(baseURL))
 
 		if bucket == nil {
-			return fmt.Errorf("you haven't crawled that site")
+			return fmt.Errorf("you haven't crawled %s yet", baseURL)
 		}
 		c := bucket.Cursor()
 
@@ -63,20 +67,26 @@ func (db *boltDB) Reader(baseURL *string) []string {
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 
 	}
 	return ps
 }
 
 // Writer method for boltDB type
-func (db *boltDB) Writer(baseURL *string, p page) {
+func (db *boltDB) Writer(baseURL string, p page) {
+	if baseURL[:5] == "https" {
+		baseURL = baseURL[8:]
+	} else {
+		baseURL = baseURL[7:]
+	}
+
 	buf, err := json.Marshal(p)
 	if err != nil {
 		log.Print(err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(*baseURL))
+		bucket := tx.Bucket([]byte(baseURL))
 		err = bucket.Put([]byte(p.URL), buf)
 		return err
 	})
