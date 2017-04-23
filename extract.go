@@ -11,23 +11,8 @@ import (
 
 // extract does the main page parsing and applies rules like sticking to the parent domain
 // and classifying assets.
-func extract(baseURL *string, URL string) (page, error) {
-
+func extract(baseURL *string, URL string, resp *http.Response) (page, error) {
 	var p page
-
-	resp, err := http.Get(URL)
-
-	if err != nil {
-		return p, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		err := resp.Body.Close()
-		if err != nil {
-			log.Print(err)
-		}
-		return p, fmt.Errorf("getting %s: %s", URL, resp.Status)
-	}
-
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		log.Print(err)
