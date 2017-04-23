@@ -63,7 +63,7 @@ func (db *boltDB) Off() {
 // Read method for boltDB type
 func (db *boltDB) Read(baseURL *string) []string {
 
-	var pages []string
+	var ps []string
 	err := db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(*baseURL))
 
@@ -73,7 +73,7 @@ func (db *boltDB) Read(baseURL *string) []string {
 		c := bucket.Cursor()
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			pages = append(pages, string(v))
+			ps = append(ps, string(v))
 
 		}
 		return nil
@@ -82,18 +82,18 @@ func (db *boltDB) Read(baseURL *string) []string {
 		log.Fatal(err)
 
 	}
-	return pages
+	return ps
 }
 
 // Write method for boltDB type
-func (db *boltDB) Write(baseURL *string, page pageType) {
-	buf, err := json.Marshal(page)
+func (db *boltDB) Write(baseURL *string, p page) {
+	buf, err := json.Marshal(p)
 	if err != nil {
 		log.Print(err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(*baseURL))
-		err = bucket.Put([]byte(page.URL), buf)
+		err = bucket.Put([]byte(p.URL), buf)
 		return err
 	})
 	if err != nil {

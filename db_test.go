@@ -8,17 +8,14 @@ import (
 
 func TestNilBucket(t *testing.T) {
 	b := "FakeBuket123"
-	db, _ := bolt.Open("clamber.db", 0600, nil)
+	db, _ := bolt.Open("/tmp/clamber.db", 0600, nil)
 	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(b))
-
 		if bucket != nil {
 			t.Error("Shouldn't be able to find a fake bucket")
 		}
-
 		return nil
 	})
-
 }
 
 func TestBucketCreate(t *testing.T) {

@@ -12,19 +12,6 @@ import (
 
 var semaphore = make(chan struct{}, 32)
 
-// pageType A website URL, its children websites and any static assets on the page.
-type pageType struct {
-	URL      string      `json:"url"`
-	Children []string    `json:"children"`
-	Assets   []assetType `json:"assets"`
-}
-
-// assetType Sub type of pageType container url and type
-type assetType struct {
-	URL  string `json:"url"`
-	Type string `json:"type"`
-}
-
 // crawler is the worker that runs extract and saves the page to boltDB, as well as passing
 // child links back to goCrawl to spawn more crawlers.
 func crawler(db *boltDB, baseURL *string, url string) []string {
@@ -66,21 +53,21 @@ func goCrawl(db *boltDB, baseURL *string) {
 
 // extract does the main page parsing and applies rules like sticking to the parent domain
 // and classifying assets.
-func extract(baseURL *string, URL string) (pageType, error) {
+func extract(baseURL *string, URL string) (page, error) {
 
-	var pT pageType
+	var p page
 
 	resp, err := http.Get(URL)
 
 	if err != nil {
-		return pT, err
+		return p, err
 	}
 	if resp.StatusCode != http.StatusOK {
 		err := resp.Body.Close()
 		if err != nil {
 			log.Print(err)
 		}
-		return pT, fmt.Errorf("getting %s: %s", URL, resp.Status)
+		return p, fmt.Errorf("getting %s: %s", URL, resp.Status)
 	}
 
 	doc, err := html.Parse(resp.Body)
@@ -93,10 +80,10 @@ func extract(baseURL *string, URL string) (pageType, error) {
 	}
 
 	if err != nil {
-		return pT, fmt.Errorf("parsing %s as HTML: %v", URL, err)
+		return p, fmt.Errorf("parsing %s as HTML: %v", URL, err)
 	}
 
-	pT.URL = URL
+	p.URL = URL
 
 	visitNode := func(n *html.Node) {
 		switch {
@@ -117,7 +104,7 @@ func extract(baseURL *string, URL string) (pageType, error) {
 				case strings.Contains(link.String(), "#"):
 					continue
 				case strings.HasPrefix(link.String(), *baseURL):
-					pT.Children = append(pT.Children, link.String())
+					p.Children = append(p.Children, link.String())
 				}
 			}
 		case n.Type == html.ElementNode:
@@ -127,12 +114,12 @@ func extract(baseURL *string, URL string) (pageType, error) {
 					if i.Key != "src" {
 						continue
 					}
-					asset, err := resp.Request.URL.Parse(i.Val)
+					a, err := resp.Request.URL.Parse(i.Val)
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(asset.String(), *baseURL) {
-						pT.Assets = append(pT.Assets, assetType{asset.String(), "img"})
+					if strings.HasPrefix(a.String(), *baseURL) {
+						p.Assets = append(p.Assets, asset{a.String(), "img"})
 					}
 				}
 			case "script":
@@ -140,12 +127,12 @@ func extract(baseURL *string, URL string) (pageType, error) {
 					if s.Key != "src" {
 						continue
 					}
-					asset, err := resp.Request.URL.Parse(s.Val)
+					a, err := resp.Request.URL.Parse(s.Val)
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(asset.String(), *baseURL) {
-						pT.Assets = append(pT.Assets, assetType{asset.String(), "script"})
+					if strings.HasPrefix(a.String(), *baseURL) {
+						p.Assets = append(p.Assets, asset{a.String(), "script"})
 					}
 				}
 			case "object":
@@ -153,23 +140,23 @@ func extract(baseURL *string, URL string) (pageType, error) {
 					if s.Key != "data" {
 						continue
 					}
-					asset, err := resp.Request.URL.Parse(s.Val)
+					a, err := resp.Request.URL.Parse(s.Val)
 					if err != nil {
 						continue
 					}
-					if strings.HasPrefix(asset.String(), *baseURL) {
-						pT.Assets = append(pT.Assets, assetType{asset.String(), "obj"})
+					if strings.HasPrefix(a.String(), *baseURL) {
+						p.Assets = append(p.Assets, asset{a.String(), "obj"})
 					}
 				}
 			case "link":
 				for _, a := range n.Attr {
 					if a.Key == "href" {
-						asset, err := resp.Request.URL.Parse(a.Val)
+						a, err := resp.Request.URL.Parse(a.Val)
 						if err != nil {
 							continue
 						}
-						if strings.HasPrefix(asset.String(), *baseURL) {
-							pT.Assets = append(pT.Assets, assetType{asset.String(), "css"})
+						if strings.HasPrefix(a.String(), *baseURL) {
+							p.Assets = append(p.Assets, asset{a.String(), "css"})
 						}
 					}
 				}
@@ -177,7 +164,7 @@ func extract(baseURL *string, URL string) (pageType, error) {
 		}
 	}
 	forEachNode(doc, visitNode, nil)
-	return pT, nil
+	return p, nil
 }
 
 // forEachNode traverses the nodes of the HTML doc.
