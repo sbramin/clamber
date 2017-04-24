@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/boltdb/bolt"
@@ -16,6 +17,7 @@ func TestNilBucket(t *testing.T) {
 		}
 		return nil
 	})
+	os.Remove("/tmp/clamber.db")
 }
 
 func TestBucketCreate(t *testing.T) {

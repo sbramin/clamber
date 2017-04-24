@@ -15,26 +15,18 @@ type boltDB struct {
 // setupDB - creates a new boltDB if none existed and initializes a bucket for the site being
 // worked on.  If a crawl operation is being performed and it has previously crawled that site
 // it will first delete the previous bucket.
-func setupDB(baseURL, job *string) (*boltDB, error) {
+func setupDB() (*boltDB, error) {
 	bdb, err := bolt.Open("clamber.db", 0600, nil)
 	if err != nil {
 		return &boltDB{}, fmt.Errorf("could not open db file - %s", err)
 	}
-	db := &boltDB{DB: bdb}
-
-	if *job == "crawl" {
-		err = db.CreateBucket(baseURL)
-		if err != nil {
-			return &boltDB{}, fmt.Errorf("could not create bucket - %s", err)
-		}
-	}
-	return db, nil
+	return &boltDB{DB: bdb}, nil
 }
 
 // CreateBucket is a wrapper around boltDBs Update/Create bucket methods that
 // first removes a bucket if it already exists.
-func (bdb *boltDB) CreateBucket(baseURL *string) (err error) {
-	err = bdb.Update(func(tx *bolt.Tx) error {
+func (db *boltDB) CreateBucket(baseURL *string) (err error) {
+	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(*baseURL))
 		if b != nil {
 			err = tx.DeleteBucket([]byte(*baseURL))
@@ -52,16 +44,8 @@ func (bdb *boltDB) CreateBucket(baseURL *string) (err error) {
 	return err
 }
 
-// Off Method closes the boltDB session
-func (db *boltDB) Off() {
-	err := db.Close()
-	if err != nil {
-		log.Print(err)
-	}
-}
-
-// Read method for boltDB type
-func (db *boltDB) Read(baseURL *string) []string {
+// Reader method for boltDB type
+func (db *boltDB) Reader(baseURL *string) []string {
 
 	var ps []string
 	err := db.View(func(tx *bolt.Tx) error {
@@ -85,8 +69,8 @@ func (db *boltDB) Read(baseURL *string) []string {
 	return ps
 }
 
-// Write method for boltDB type
-func (db *boltDB) Write(baseURL *string, p page) {
+// Writer method for boltDB type
+func (db *boltDB) Writer(baseURL *string, p page) {
 	buf, err := json.Marshal(p)
 	if err != nil {
 		log.Print(err)
